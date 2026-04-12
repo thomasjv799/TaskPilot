@@ -1,0 +1,19 @@
+name: TaskPilot Deadline Reminders
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # Every day at 08:00 UTC
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check deadline reminders
+        run: |
+          curl -X POST \
+            "${{ secrets.TASKPILOT_SERVICE_URL }}/reminders/${{ github.repository }}" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --silent \
+            --show-error

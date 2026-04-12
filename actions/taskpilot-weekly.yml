@@ -1,0 +1,19 @@
+name: TaskPilot Weekly Digest
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Every Monday at 09:00 UTC
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger weekly digest
+        run: |
+          curl -X POST \
+            "${{ secrets.TASKPILOT_SERVICE_URL }}/digest/${{ github.repository }}" \
+            -H "Content-Type: application/json" \
+            --fail \
+            --silent \
+            --show-error
