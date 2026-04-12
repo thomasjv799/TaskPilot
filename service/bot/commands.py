@@ -12,13 +12,9 @@ class CreateTaskCommand:
     assignee: str | None
 
     async def execute(self, message, bot) -> None:
-        from ..github.writer import GitHubWriter, SprintTask
-        from ..github.client import GitHubClient
-
-        client = GitHubClient.from_env()
-        writer = GitHubWriter(client=client, repo=bot.config.github.repo)
+        from ..github.writer import SprintTask
         task = SprintTask(title=self.title, body=self.body, assignee=self.assignee, due_date=None)
-        issue = writer.create_issue(task)
+        issue = bot.planner.writer.create_issue(task)
         await message.reply(f"✅ Created issue #{issue['number']}: {issue['html_url']}")
 
 

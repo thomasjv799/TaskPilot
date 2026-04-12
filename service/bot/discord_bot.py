@@ -19,6 +19,8 @@ class TaskPilotBot(commands.Bot):
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent) -> None:
         if payload.user_id == self.user.id:
             return
+        if str(payload.channel_id) != self.config.discord.project_channel_id:
+            return
         emoji = str(payload.emoji)
         if emoji == "✅":
             await self.planner.approve(payload.message_id, self)

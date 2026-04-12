@@ -19,7 +19,7 @@ def create_app(
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        task = asyncio.create_task(bot.start(os.environ.get("DISCORD_BOT_TOKEN", "")))
+        task = asyncio.create_task(bot.start(os.environ["DISCORD_BOT_TOKEN"]))
         yield
         task.cancel()
 
@@ -50,6 +50,8 @@ def build() -> FastAPI:
     config = load_config()
     llm = create_provider(config.llm)
     client = GitHubClient.from_env()
+    # Validate Discord token at startup — fail fast rather than silently
+    discord_token = os.environ["DISCORD_BOT_TOKEN"]
     reader = GitHubReader(client=client, repo=config.github.repo, project_number=config.github.project_number)
     writer = GitHubWriter(client=client, repo=config.github.repo)
     planner = Planner(config=config, llm=llm, reader=reader, writer=writer)

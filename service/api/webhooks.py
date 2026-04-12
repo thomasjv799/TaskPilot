@@ -12,7 +12,9 @@ router = APIRouter()
 def _verify_signature(payload: bytes, signature: str) -> bool:
     secret = os.environ.get("GITHUB_WEBHOOK_SECRET", "")
     if not secret:
-        return True
+        # No secret configured — reject all webhook requests
+        # Set GITHUB_WEBHOOK_SECRET in your environment to enable webhook processing
+        return False
     expected = "sha256=" + hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
 

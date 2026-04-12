@@ -62,6 +62,7 @@ class Planner:
         self.reader = reader
         self.writer = writer
         self._pending: dict[int, SprintPlan] = {}
+        self._timeout_tasks: dict[int, asyncio.Task] = {}
 
     async def generate_and_propose(self, bot) -> None:
         context = self.reader.read_context()
@@ -71,12 +72,14 @@ class Planner:
             plan=plan,
         )
         self._pending[message.id] = plan
-        asyncio.create_task(self._timeout(message.id, bot))
+        task = asyncio.create_task(self._timeout(message.id, bot))
+        self._timeout_tasks[message.id] = task
 
     async def approve(self, message_id: int, bot) -> None:
         plan = self._pending.pop(message_id, None)
         if plan is None:
             return
+        self._cancel_timeout(message_id)
         for task in plan.tasks:
             self.writer.create_issue(task)
         await bot.confirm_plan_created(
@@ -86,7 +89,13 @@ class Planner:
 
     async def reject(self, message_id: int, bot) -> None:
         self._pending.pop(message_id, None)
+        self._cancel_timeout(message_id)
         await bot.notify_plan_discarded(channel_id=self.config.discord.project_channel_id)
+
+    def _cancel_timeout(self, message_id: int) -> None:
+        task = self._timeout_tasks.pop(message_id, None)
+        if task:
+            task.cancel()
 
     async def _timeout(self, message_id: int, bot) -> None:
         await asyncio.sleep(self.config.sprint.approval_timeout_hours * 3600)
