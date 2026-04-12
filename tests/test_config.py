@@ -47,3 +47,18 @@ def test_missing_llm_raises(tmp_path):
     data = {k: v for k, v in VALID.items() if k != "llm"}
     with pytest.raises(Exception):
         load_config(write_config(tmp_path, data))
+
+def test_missing_config_file_raises_with_clear_message():
+    with pytest.raises(FileNotFoundError, match="Config file not found"):
+        load_config("/nonexistent/path/.taskpilot.yml")
+
+def test_empty_config_file_raises():
+    import tempfile, os
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        f.write("")
+        name = f.name
+    try:
+        with pytest.raises(ValueError, match="Config file is empty"):
+            load_config(name)
+    finally:
+        os.unlink(name)

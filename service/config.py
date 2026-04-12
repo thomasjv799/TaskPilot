@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal
 from pydantic import BaseModel
 import yaml
 
@@ -14,7 +15,7 @@ class DiscordConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    provider: str
+    provider: Literal["groq", "cerebras", "ollama"]
     model: str
 
 
@@ -31,6 +32,11 @@ class Config(BaseModel):
 
 
 def load_config(path: str = ".taskpilot.yml") -> Config:
-    with open(path) as f:
-        data = yaml.safe_load(f)
+    try:
+        with open(path) as f:
+            data = yaml.safe_load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Config file not found: {path!r}") from None
+    if data is None:
+        raise ValueError(f"Config file is empty: {path!r}")
     return Config(**data)
