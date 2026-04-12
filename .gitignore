@@ -1,1 +1,14 @@
 .superpowers/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# Secrets — never commit
+.env
+
+# OS
+.DS_Store
