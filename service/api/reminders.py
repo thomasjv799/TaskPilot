@@ -1,19 +1,24 @@
 # service/api/reminders.py
 from __future__ import annotations
+import asyncio
 from datetime import date
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
+
+from ._auth import verify_taskpilot_secret
 
 router = APIRouter()
 
 
-@router.post("/reminders/{repo:path}")
+@router.post("/reminders/{repo:path}", dependencies=[Depends(verify_taskpilot_secret)])
 async def check_reminders(repo: str, request: Request) -> dict:
     reader = request.app.state.reader
     bot = request.app.state.bot
     config = request.app.state.config
 
+    loop = asyncio.get_running_loop()
     today = date.today()
-    issues = reader.read_context().open_issues
+    context = await loop.run_in_executor(None, reader.read_context)
+    issues = context.open_issues
 
     for issue in issues:
         due_label = next(

@@ -65,8 +65,9 @@ class Planner:
         self._timeout_tasks: dict[int, asyncio.Task] = {}
 
     async def generate_and_propose(self, bot) -> None:
-        context = self.reader.read_context()
-        plan = self._generate_plan(context)
+        loop = asyncio.get_running_loop()
+        context = await loop.run_in_executor(None, self.reader.read_context)
+        plan = await loop.run_in_executor(None, self._generate_plan, context)
         message = await bot.propose_plan(
             channel_id=self.config.discord.project_channel_id,
             plan=plan,

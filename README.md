@@ -82,6 +82,7 @@ cp .env.example .env
 #   GITHUB_WEBHOOK_SECRET — Secret for webhook HMAC verification (required)
 #   GROQ_API_KEY          — Or CEREBRAS_API_KEY depending on provider
 #   TASKPILOT_SERVICE_URL — Public URL of your deployed service
+#   TASKPILOT_SECRET      — Shared secret for /digest and /reminders endpoints
 ```
 
 ### 3. Run
@@ -106,7 +107,7 @@ cp actions/taskpilot-weekly.yml    path/to/repo/.github/workflows/
 cp actions/taskpilot-reminders.yml path/to/repo/.github/workflows/
 ```
 
-Add `TASKPILOT_SERVICE_URL` as a repository secret in the target repo.
+Add `TASKPILOT_SERVICE_URL` and `TASKPILOT_SECRET` as repository secrets in the target repo.
 
 ---
 

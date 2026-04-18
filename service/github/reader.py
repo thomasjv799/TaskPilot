@@ -81,19 +81,27 @@ class GitHubReader:
 
     def _list_project_board_items(self) -> list[dict]:
         owner = self.repo.split("/")[0]
-        query = """
-        query($owner: String!, $number: Int!) {
-          user(login: $owner) {
-            projectV2(number: $number) {
-              items(first: 50) {
-                nodes {
+        # Try user-owned project first; fall back to org-owned project.
+        # GitHub GraphQL returns null (not an error) when the owner type doesn't match.
+        items = self._query_project_board(owner, "user")
+        if not items:
+            items = self._query_project_board(owner, "organization")
+        return items
+
+    def _query_project_board(self, owner: str, owner_type: str) -> list[dict]:
+        query = f"""
+        query($owner: String!, $number: Int!) {{
+          {owner_type}(login: $owner) {{
+            projectV2(number: $number) {{
+              items(first: 50) {{
+                nodes {{
                   id
-                  content { ... on Issue { title number state } }
-                }
-              }
-            }
-          }
-        }
+                  content {{ ... on Issue {{ title number state }} }}
+                }}
+              }}
+            }}
+          }}
+        }}
         """
         try:
             data = self.client.post(
@@ -102,7 +110,7 @@ class GitHubReader:
             )
             return (
                 data.get("data", {})
-                .get("user", {})
+                .get(owner_type, {})
                 .get("projectV2", {})
                 .get("items", {})
                 .get("nodes", [])
